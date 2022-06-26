@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 
 import config from 'config';
 
@@ -10,7 +10,7 @@ const router = Router();
 
 router.get('/get', async (req: Request, res: Response) => {
   //Get all games released this year
-
+  console.log('HIT');
   const allGames = await axios.get(
     `https://api.rawg.io/api/games?key=${RAWG_KEY}`
   );
@@ -23,25 +23,32 @@ router.get('/get', async (req: Request, res: Response) => {
 });
 
 router.get('/get/:id', async (req: Request, res: Response) => {
-  const getByIdRequest = z.object({ id: z.string() });
+  try {
+    console.log('GET BY ID');
+    const getByIdRequest = z.object({ id: z.string() });
 
-  const { success } = getByIdRequest.safeParse(req.params);
+    const { success } = getByIdRequest.safeParse(req.params);
 
-  if (!success) {
-    return res.status(400).json({ message: 'Invalid request' });
+    if (!success) {
+      return res.status(400).json({ message: 'Invalid request' });
+    }
+
+    const { id } = req.params;
+
+    const game = await axios.get(
+      `https://api.rawg.io/api/games/${id}?key=${RAWG_KEY}`
+    );
+
+    return res.status(game.status).json(game.data);
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      if (error.response?.status == 404) {
+        return res
+          .status(error.response?.status)
+          .json({ message: 'Game not found' });
+      }
+    }
   }
-
-  const { id } = req.params;
-
-  const game = await axios.get(
-    `https://api.rawg.io/api/games/${id}?key=${RAWG_KEY}`
-  );
-
-  if (game.status != 200) {
-    return res.status(game.status).json({ message: `${game.statusText}` });
-  }
-
-  return res.status(game.status).json(game.data);
 });
 
 export default router;
