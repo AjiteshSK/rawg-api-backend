@@ -12,12 +12,14 @@ router.get('/get', async (req: Request, res: Response) => {
   //Get all games released this year
   console.log('HIT');
   const allGames = await axios.get(
-    `https://api.rawg.io/api/games?key=${RAWG_KEY}`
+    `https://api.rawg.io/api/games?key=${RAWG_KEY}&page_size=50`
   );
 
   if (!allGames.data.results) {
     return res.status(500).json({ message: 'Could not fetch games' });
   }
+
+  //for()
 
   return res.status(allGames.status).json(allGames.data.results);
 });
@@ -46,6 +48,8 @@ router.get('/get/:id', async (req: Request, res: Response) => {
         return res
           .status(error.response?.status)
           .json({ message: 'Game not found' });
+      } else {
+        return res.status(500).json({ message: error.response?.statusText });
       }
     }
   }
