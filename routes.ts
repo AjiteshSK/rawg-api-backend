@@ -9,8 +9,6 @@ const RAWG_KEY = config.get<string>('RAWG_KEY');
 const router = Router();
 
 router.get('/get', async (req: Request, res: Response) => {
-  //Get all games released this year
-  console.log('HIT');
   const allGames = await axios.get(
     `https://api.rawg.io/api/games?key=${RAWG_KEY}&page_size=50`
   );
@@ -26,7 +24,6 @@ router.get('/get', async (req: Request, res: Response) => {
 
 router.get('/get/:id', async (req: Request, res: Response) => {
   try {
-    console.log('GET BY ID');
     const getByIdRequest = z.object({ id: z.string() });
 
     const { success } = getByIdRequest.safeParse(req.params);
